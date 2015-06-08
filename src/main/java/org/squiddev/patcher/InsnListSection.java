@@ -1,6 +1,5 @@
-package org.squiddev.patcher.searcher;
+package org.squiddev.patcher;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.LabelNode;
@@ -9,18 +8,14 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class InsnListSection implements Iterable<AbstractInsnNode> {
-	public InsnList list;
-	public int start;
-	public int end;
+	protected InsnList list;
+	protected int start;
+	protected int end;
 
 	public InsnListSection(InsnList list, int start, int end) {
 		this.list = list;
 		this.start = start;
 		this.end = end;
-	}
-
-	public InsnListSection(InsnList list, AbstractInsnNode first, AbstractInsnNode last) {
-		this(list, list.indexOf(first), list.indexOf(last) + 1);
 	}
 
 	public InsnListSection(InsnList list) {
@@ -29,12 +24,6 @@ public class InsnListSection implements Iterable<AbstractInsnNode> {
 
 	public InsnListSection() {
 		this(new InsnList());
-	}
-
-	public void accept(MethodVisitor mv) {
-		for (AbstractInsnNode insn : this) {
-			insn.accept(mv);
-		}
 	}
 
 	public AbstractInsnNode getFirst() {
@@ -127,6 +116,14 @@ public class InsnListSection implements Iterable<AbstractInsnNode> {
 		}
 
 		return copy;
+	}
+
+	public int getStart() {
+		return start;
+	}
+
+	public int getEnd() {
+		return end;
 	}
 
 	@Override
