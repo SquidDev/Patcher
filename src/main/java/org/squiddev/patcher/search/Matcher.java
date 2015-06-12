@@ -4,14 +4,38 @@ import org.objectweb.asm.tree.*;
 
 public class Matcher {
 	/**
+	 * Compare a {@link VarInsnNode} instruction.
+	 *
+	 * @param var   The index of the local variable
+	 * @param match The node we are comparing to. If {@link VarInsnNode#var} is {@code -1} then any value is allowed
+	 * @return If the nodes match
+	 */
+	public static boolean varInsnEqual(int var, VarInsnNode match) {
+		return match.var == -1 || var == match.var;
+	}
+
+	/**
 	 * Compare two {@link VarInsnNode} nodes.
 	 *
 	 * @param target The node to match
 	 * @param match  The node we are comparing to. If {@link VarInsnNode#var} is {@code -1} then any value is allowed
 	 * @return If the nodes match
 	 */
-	public static boolean instructionsEqual(VarInsnNode target, VarInsnNode match) {
-		return match.var == -1 || target.var == match.var;
+	public static boolean varInsnEqual(VarInsnNode target, VarInsnNode match) {
+		return varInsnEqual(target.var, match);
+	}
+
+	/**
+	 * Compare a {@link MethodInsnNode} instruction.
+	 *
+	 * @param owner Type that owns the method
+	 * @param name  Name of the method
+	 * @param desc  Method signature
+	 * @param match The node we are comparing to.
+	 * @return If the nodes match
+	 */
+	public static boolean methodInsnEqual(String owner, String name, String desc, MethodInsnNode match) {
+		return owner.equals(match.owner) && name.equals(match.name) && desc.equals(match.desc);
 	}
 
 	/**
@@ -21,8 +45,21 @@ public class Matcher {
 	 * @param match  The node we are comparing to.
 	 * @return If the nodes match
 	 */
-	public static boolean instructionsEqual(MethodInsnNode target, MethodInsnNode match) {
-		return target.owner.equals(match.owner) && target.name.equals(match.name) && target.desc.equals(match.desc);
+	public static boolean methodInsnEqual(MethodInsnNode target, MethodInsnNode match) {
+		return methodInsnEqual(target.owner, target.name, target.desc, match);
+	}
+
+	/**
+	 * Compare a {@link FieldInsnNode} instruction.
+	 *
+	 * @param owner Type that owns the field
+	 * @param name  Name of the field
+	 * @param desc  Field signature
+	 * @param match The node we are comparing to.
+	 * @return If the nodes match
+	 */
+	public static boolean fieldInsnEqual(String owner, String name, String desc, FieldInsnNode match) {
+		return owner.equals(match.owner) && name.equals(match.name) && desc.equals(match.desc);
 	}
 
 	/**
@@ -32,8 +69,19 @@ public class Matcher {
 	 * @param match  The node we are comparing to.
 	 * @return If the nodes match
 	 */
-	public static boolean instructionsEqual(FieldInsnNode target, FieldInsnNode match) {
-		return target.owner.equals(match.owner) && target.name.equals(match.name) && target.desc.equals(match.desc);
+	public static boolean fieldInsnEqual(FieldInsnNode target, FieldInsnNode match) {
+		return fieldInsnEqual(target.owner, target.name, target.desc, match);
+	}
+
+	/**
+	 * Compare a {@link LdcInsnNode} instruction.
+	 *
+	 * @param cst   The constant being loaded
+	 * @param match The node we are comparing to. If {@link LdcInsnNode#cst} is {@code null} then any value is allowed
+	 * @return If the nodes match
+	 */
+	public static boolean ldcInsnEqual(Object cst, LdcInsnNode match) {
+		return match.cst == null || cst.equals(match.cst);
 	}
 
 	/**
@@ -43,8 +91,19 @@ public class Matcher {
 	 * @param match  The node we are comparing to. If {@link LdcInsnNode#cst} is {@code null} then any value is allowed
 	 * @return If the nodes match
 	 */
-	public static boolean instructionsEqual(LdcInsnNode target, LdcInsnNode match) {
-		return match.cst == null || target.cst.equals(match.cst);
+	public static boolean ldcInsnEqual(LdcInsnNode target, LdcInsnNode match) {
+		return ldcInsnEqual(target.cst, match);
+	}
+
+	/**
+	 * Compare a {@link TypeInsnNode} instruction.
+	 *
+	 * @param desc  The node to match
+	 * @param match The node we are comparing to. If {@link TypeInsnNode#desc} is {@code *} then any value is allowed
+	 * @return If the nodes match
+	 */
+	public static boolean typeInsnEqual(String desc, TypeInsnNode match) {
+		return match.desc.equals("*") || desc.equals(match.desc);
 	}
 
 	/**
@@ -54,8 +113,20 @@ public class Matcher {
 	 * @param match  The node we are comparing to. If {@link TypeInsnNode#desc} is {@code *} then any value is allowed
 	 * @return If the nodes match
 	 */
-	public static boolean instructionsEqual(TypeInsnNode target, TypeInsnNode match) {
-		return match.desc.equals("*") || target.desc.equals(match.desc);
+	public static boolean typeInsnEqual(TypeInsnNode target, TypeInsnNode match) {
+		return typeInsnEqual(target.desc, match);
+	}
+
+	/**
+	 * Compare a {@link IincInsnNode} instruction.
+	 *
+	 * @param var   The local variable
+	 * @param incr  Amount to increment the variable by
+	 * @param match The node we are comparing to.
+	 * @return If the nodes match
+	 */
+	public static boolean iincInsnEqual(int var, int incr, IincInsnNode match) {
+		return var == match.var && incr == match.incr;
 	}
 
 	/**
@@ -65,8 +136,19 @@ public class Matcher {
 	 * @param match  The node we are comparing to.
 	 * @return If the nodes match
 	 */
-	public static boolean instructionsEqual(IincInsnNode target, IincInsnNode match) {
-		return target.var == match.var && target.incr == match.incr;
+	public static boolean iincInsnEqual(IincInsnNode target, IincInsnNode match) {
+		return iincInsnEqual(target.var, target.incr, match);
+	}
+
+	/**
+	 * Compare two {@link IntInsnNode} nodes.
+	 *
+	 * @param operand The operand to act on
+	 * @param match   The node we are comparing to. If {@link IntInsnNode#operand} is {@code -1} then any value is allowed
+	 * @return If the nodes match
+	 */
+	public static boolean intInsnEqual(int operand, IntInsnNode match) {
+		return match.operand == -1 || operand == match.operand;
 	}
 
 	/**
@@ -76,13 +158,13 @@ public class Matcher {
 	 * @param match  The node we are comparing to. If {@link IntInsnNode#operand} is {@code -1} then any value is allowed
 	 * @return If the nodes match
 	 */
-	public static boolean instructionsEqual(IntInsnNode target, IntInsnNode match) {
-		return match.operand == -1 || target.operand == match.operand;
+	public static boolean intInsnEqual(IntInsnNode target, IntInsnNode match) {
+		return intInsnEqual(target.operand, match);
 	}
 
 	/**
 	 * Compare two {@link AbstractInsnNode}.
-	 *
+	 * <p/>
 	 * This chooses the correct matcher and compares them. Read the type specific
 	 * documentation for custom values that can be passed.
 	 *
@@ -95,19 +177,19 @@ public class Matcher {
 
 		switch (match.getType()) {
 			case AbstractInsnNode.VAR_INSN:
-				return instructionsEqual((VarInsnNode) target, (VarInsnNode) match);
+				return varInsnEqual((VarInsnNode) target, (VarInsnNode) match);
 			case AbstractInsnNode.TYPE_INSN:
-				return instructionsEqual((TypeInsnNode) target, (TypeInsnNode) match);
+				return typeInsnEqual((TypeInsnNode) target, (TypeInsnNode) match);
 			case AbstractInsnNode.FIELD_INSN:
-				return instructionsEqual((FieldInsnNode) target, (FieldInsnNode) match);
+				return fieldInsnEqual((FieldInsnNode) target, (FieldInsnNode) match);
 			case AbstractInsnNode.METHOD_INSN:
-				return instructionsEqual((MethodInsnNode) target, (MethodInsnNode) match);
+				return methodInsnEqual((MethodInsnNode) target, (MethodInsnNode) match);
 			case AbstractInsnNode.LDC_INSN:
-				return instructionsEqual((LdcInsnNode) target, (LdcInsnNode) match);
+				return ldcInsnEqual((LdcInsnNode) target, (LdcInsnNode) match);
 			case AbstractInsnNode.IINC_INSN:
-				return instructionsEqual((IincInsnNode) target, (IincInsnNode) match);
+				return iincInsnEqual((IincInsnNode) target, (IincInsnNode) match);
 			case AbstractInsnNode.INT_INSN:
-				return instructionsEqual((IntInsnNode) target, (IntInsnNode) match);
+				return intInsnEqual((IntInsnNode) target, (IntInsnNode) match);
 			default:
 				return target.equals(match);
 		}

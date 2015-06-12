@@ -32,7 +32,6 @@ public class ClassReplaceSource implements ISource {
 
 	/**
 	 * Patches a class. Replaces className with {@link #patchPath}.
-	 * FIXME: This is really inefficient a method and is a con of returning ClassVisitors
 	 *
 	 * @param className The class name to use
 	 * @return The reader or {@code null} if nothing to provide
