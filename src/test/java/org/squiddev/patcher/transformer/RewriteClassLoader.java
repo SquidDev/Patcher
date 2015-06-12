@@ -1,8 +1,5 @@
 package org.squiddev.patcher.transformer;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
 import org.squiddev.patcher.Logger;
 
 import java.io.IOException;
@@ -14,12 +11,19 @@ import java.util.Set;
  * Loads classes, rewriting them
  */
 public class RewriteClassLoader extends ClassLoader {
-	public final IPatcher[] patchers;
+	public final TransformationChain chain;
 
 	private Set<String> loaded = new HashSet<String>();
 
-	public RewriteClassLoader(IPatcher[] patchers) {
-		this.patchers = patchers;
+	public RewriteClassLoader(IPatcher... patchers) {
+		chain = new TransformationChain();
+		for (IPatcher patcher : patchers) {
+			if (patcher instanceof ISource) {
+				chain.add((ISource) patcher);
+			}
+			chain.add(patcher);
+		}
+		chain.finalise();
 	}
 
 	@Override
@@ -38,7 +42,7 @@ public class RewriteClassLoader extends ClassLoader {
 
 		InputStream is = getClass().getResourceAsStream("/" + name.replace('.', '/') + ".class");
 		if (is == null) {
-			throw new ClassNotFoundException();
+			throw new ClassNotFoundException(name);
 		}
 
 		try {
@@ -78,22 +82,7 @@ public class RewriteClassLoader extends ClassLoader {
 
 	protected Class<?> defineClass(String name, byte[] bytes) {
 		try {
-			int flags = ClassReader.SKIP_DEBUG;
-			ClassWriter writer = null;
-			ClassVisitor visitor = null;
-			for (IPatcher patcher : patchers) {
-				if (patcher.matches(name)) {
-					if (visitor == null) {
-						visitor = writer = new ClassWriter(0);
-					}
-					visitor = patcher.patch(name, visitor);
-				}
-			}
-
-			if (visitor != null) {
-				new ClassReader(bytes).accept(visitor, flags);
-				bytes = writer.toByteArray();
-			}
+			bytes = chain.transform(name, bytes);
 		} catch (Exception e) {
 			Logger.error("Cannot load " + name, e);
 		}

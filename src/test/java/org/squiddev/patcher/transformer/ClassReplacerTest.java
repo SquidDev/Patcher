@@ -10,14 +10,14 @@ import static org.junit.Assert.assertEquals;
  * Tests the {@link org.squiddev.patcher.transformer.ClassReplacer} and {@link org.squiddev.patcher.transformer.ClassPartialPatcher} methods
  */
 public class ClassReplacerTest {
-	public static final String PATCHES = "org.squiddev.patcher.patch.classes.";
+	public static final String PATCHES = "org.squiddev.patcher.transformer.classes.";
 	public static final String CLASS = PATCHES + "BaseClass";
 	public static final String METHOD = "getMessage";
 	public static final String FIELD = "message";
 
 	@Test
 	public void defaultClass() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[0]);
+		RewriteClassLoader loader = new RewriteClassLoader();
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
@@ -31,7 +31,7 @@ public class ClassReplacerTest {
 
 	@Test
 	public void defaultReplacer() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassReplacer(CLASS)});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassReplacer(CLASS));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
@@ -45,7 +45,7 @@ public class ClassReplacerTest {
 
 	@Test
 	public void defaultPatch() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassPartialPatcher(CLASS)});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassPartialPatcher(CLASS));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();

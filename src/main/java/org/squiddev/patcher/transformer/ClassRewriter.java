@@ -7,7 +7,7 @@ import org.squiddev.patcher.visitors.RenameContext;
 import java.io.InputStream;
 
 /**
- * Abstract class for rewriting classes
+ * Abstract class for using custom sources
  */
 public abstract class ClassRewriter implements IPatcher {
 	protected final int classNameStart;

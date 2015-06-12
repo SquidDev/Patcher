@@ -2,13 +2,14 @@ package org.squiddev.patcher.transformer;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.RemappingClassAdapter;
+
+import java.io.IOException;
 
 /**
  * Replaces a class named {@link #className} with {@link #patchName}
  */
-public class ClassReplacer extends ClassRewriter {
+public class ClassReplacer extends ClassRewriter implements ISource {
 	public final static String NAME_SUFFIX = "_Rewrite";
 
 	public ClassReplacer(String className, String actualName) {
@@ -29,14 +30,18 @@ public class ClassReplacer extends ClassRewriter {
 	 */
 	@Override
 	public ClassVisitor patch(String className, final ClassVisitor delegate) throws Exception {
-		final ClassReader reader = getSource(patchType + className.substring(classNameStart));
-		if (reader == null) return delegate;
+		return new RemappingClassAdapter(delegate, context);
+	}
 
-		return new ClassVisitor(Opcodes.ASM5) {
-			@Override
-			public void visitEnd() {
-				reader.accept(new RemappingClassAdapter(delegate, context), ClassReader.EXPAND_FRAMES);
-			}
-		};
+	/**
+	 * Get a reader for this source
+	 *
+	 * @param className The class name to use
+	 * @return The reader or {@code null} if nothing to provide
+	 * @throws java.io.IOException Sometimes things blow up...
+	 */
+	@Override
+	public ClassReader getReader(String className) throws IOException {
+		return matches(className) ? getSource(patchType + className.substring(classNameStart)) : null;
 	}
 }
