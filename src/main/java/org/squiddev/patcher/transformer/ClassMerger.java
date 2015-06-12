@@ -5,16 +5,16 @@ import org.objectweb.asm.ClassVisitor;
 import org.squiddev.patcher.visitors.MergeVisitor;
 
 /**
- * Replaces parts of the class with
+ * Replaces parts of the class with a override class
  */
-public class ClassPartialPatcher extends ClassRewriter {
+public class ClassMerger extends AbstractRewriter {
 	public final static String NAME_SUFFIX = "_Patch";
 
-	public ClassPartialPatcher(String className, String patchName) {
+	public ClassMerger(String className, String patchName) {
 		super(className, patchName);
 	}
 
-	public ClassPartialPatcher(String className) {
+	public ClassMerger(String className) {
 		this(className, className + NAME_SUFFIX);
 	}
 

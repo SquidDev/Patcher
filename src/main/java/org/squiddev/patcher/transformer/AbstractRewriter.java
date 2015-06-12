@@ -9,7 +9,7 @@ import java.io.InputStream;
 /**
  * Abstract class for using custom sources
  */
-public abstract class ClassRewriter implements IPatcher {
+public abstract class AbstractRewriter implements IPatcher {
 	protected final int classNameStart;
 
 	/**
@@ -37,7 +37,7 @@ public abstract class ClassRewriter implements IPatcher {
 	 */
 	protected final RenameContext context;
 
-	public ClassRewriter(String className, String patchName) {
+	public AbstractRewriter(String className, String patchName) {
 		this.className = className;
 		classNameStart = className.length();
 		classType = className.replace('.', '/');
@@ -51,7 +51,7 @@ public abstract class ClassRewriter implements IPatcher {
 
 	protected ClassReader getSource(String source) {
 		source = "/" + source.replace('.', '/') + ".class";
-		InputStream stream = ClassRewriter.class.getResourceAsStream(source);
+		InputStream stream = AbstractRewriter.class.getResourceAsStream(source);
 
 		if (stream == null) {
 			Logger.warn("Cannot find custom rewrite " + source);

@@ -9,7 +9,7 @@ import java.io.IOException;
 /**
  * Replaces a class named {@link #className} with {@link #patchName}
  */
-public class ClassReplacer extends ClassRewriter implements ISource {
+public class ClassReplacer extends AbstractRewriter implements ISource {
 	public final static String NAME_SUFFIX = "_Rewrite";
 
 	public ClassReplacer(String className, String actualName) {

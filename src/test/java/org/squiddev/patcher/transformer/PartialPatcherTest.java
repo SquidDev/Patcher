@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import static org.junit.Assert.*;
 
 /**
- * Tests the {@link org.squiddev.patcher.transformer.ClassPartialPatcher} methods
+ * Tests the {@link ClassMerger} methods
  */
 public class PartialPatcherTest {
 	public static final String PATCHES = ClassReplacerTest.PATCHES + "patch.";
@@ -15,7 +15,7 @@ public class PartialPatcherTest {
 
 	@Test
 	public void classRename() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassPartialPatcher(CLASS, PATCHES + "ClassRename")});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "ClassRename"));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
@@ -26,7 +26,7 @@ public class PartialPatcherTest {
 
 	@Test
 	public void methodRename() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassPartialPatcher(CLASS, PATCHES + "MethodRename")});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "MethodRename"));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
@@ -37,7 +37,7 @@ public class PartialPatcherTest {
 
 	@Test
 	public void callSuper() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassPartialPatcher(CLASS, PATCHES + "Super")});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "Super"));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
@@ -48,7 +48,7 @@ public class PartialPatcherTest {
 
 	@Test
 	public void stubMethod() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassPartialPatcher(CLASS, PATCHES + "MethodStub")});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "MethodStub"));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
@@ -62,7 +62,7 @@ public class PartialPatcherTest {
 
 	@Test
 	public void stubMethodAccess() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassPartialPatcher(CLASS, PATCHES + "MethodStub")});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "MethodStub"));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
@@ -73,7 +73,7 @@ public class PartialPatcherTest {
 
 	@Test
 	public void stubClass() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassPartialPatcher(CLASS, PATCHES + "ClassStub")});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "ClassStub"));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
@@ -84,7 +84,7 @@ public class PartialPatcherTest {
 
 	@Test
 	public void rewriteClass() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new IPatcher[]{new ClassPartialPatcher(CLASS, PATCHES + "ClassRewrite")});
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "ClassRewrite"));
 
 		Class<?> base = loader.loadClass(CLASS + "$Foo");
 		{

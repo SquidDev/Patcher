@@ -18,7 +18,7 @@ public class TransformationChain {
 	protected boolean finalised = false;
 
 	public byte[] transform(String className, byte[] bytes) throws Exception {
-		int flags = ClassReader.SKIP_DEBUG;
+		int flags = ClassReader.SKIP_FRAMES;
 		ClassWriter writer = null;
 		ClassVisitor visitor = null;
 		for (IPatcher patcher : patchers) {

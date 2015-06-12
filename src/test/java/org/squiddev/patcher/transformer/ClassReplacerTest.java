@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests the {@link org.squiddev.patcher.transformer.ClassReplacer} and {@link org.squiddev.patcher.transformer.ClassPartialPatcher} methods
+ * Tests the {@link org.squiddev.patcher.transformer.ClassReplacer} and {@link ClassMerger} methods
  */
 public class ClassReplacerTest {
 	public static final String PATCHES = "org.squiddev.patcher.transformer.classes.";
@@ -45,7 +45,7 @@ public class ClassReplacerTest {
 
 	@Test
 	public void defaultPatch() throws Exception {
-		RewriteClassLoader loader = new RewriteClassLoader(new ClassPartialPatcher(CLASS));
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS));
 
 		Class<?> base = loader.loadClass(CLASS);
 		Object instance = base.newInstance();
