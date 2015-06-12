@@ -1,9 +1,8 @@
 package org.squiddev.patcher.patch;
 
-import org.squiddev.patcher.Logger;
-
-import java.io.IOException;
-import java.io.InputStream;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Finds classes in the /patch/ directory and uses
@@ -43,57 +42,23 @@ public class ClassPatcher implements IPatcher {
 	}
 
 	/**
-	 * Patches a class. Replaces className with {@link #patchPath}
+	 * Patches a class. Replaces className with {@link #patchPath}.
+	 * FIXME: This is really inefficient a method and is a con of returning ClassVisitors
 	 *
 	 * @param className The name of the class
-	 * @param bytes     The original bytes to patch
-	 * @return The patched bytes
+	 * @param delegate  The visitor to delegate to
+	 * @return The patching visitor
 	 */
 	@Override
-	public byte[] patch(String className, byte[] bytes) {
+	public ClassVisitor patch(String className, final ClassVisitor delegate) throws Exception {
 		String source = patchPath + className.replace('.', '/') + ".class";
-		InputStream is = ClassPatcher.class.getResourceAsStream(source);
+		final ClassReader reader = new ClassReader(ClassPatcher.class.getResourceAsStream(source));
 
-		if (is == null) {
-			Logger.warn("Cannot find custom rewrite for " + className + " at " + source);
-			return bytes;
-		}
-
-		try {
-			// Read the byte array
-			byte[] result = new byte[is.available()];
-			int len = 0;
-			while (true) {
-				int n = is.read(result, len, result.length - len);
-				if (n == -1) {
-					if (len < result.length) {
-						byte[] c = new byte[len];
-						System.arraycopy(result, 0, c, 0, len);
-						result = c;
-					}
-					return result;
-				}
-				len += n;
-				if (len == result.length) {
-					int last = is.read();
-					if (last < 0) {
-						Logger.debug("Injected custom " + className);
-						return result;
-					}
-					byte[] c = new byte[result.length + 1000];
-					System.arraycopy(result, 0, c, 0, len);
-					c[len++] = (byte) last;
-					result = c;
-				}
+		return new ClassVisitor(Opcodes.ASM5) {
+			@Override
+			public void visitEnd() {
+				reader.accept(delegate, ClassReader.EXPAND_FRAMES);
 			}
-		} catch (Exception e) {
-			Logger.error("Cannot replace " + className + ", falling back to default", e);
-			return bytes;
-		} finally {
-			try {
-				is.close();
-			} catch (IOException ignored) {
-			}
-		}
+		};
 	}
 }

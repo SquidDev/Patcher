@@ -1,5 +1,10 @@
 package org.squiddev.patcher.patch;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.squiddev.patcher.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -72,11 +77,25 @@ public class RewriteClassLoader extends ClassLoader {
 	}
 
 	protected Class<?> defineClass(String name, byte[] bytes) {
-		for (IPatcher patcher : patchers) {
-			if (patcher.matches(name)) {
-				bytes = patcher.patch(name, bytes);
-				break;
+		try {
+			int flags = ClassReader.SKIP_DEBUG;
+			ClassWriter writer = null;
+			ClassVisitor visitor = null;
+			for (IPatcher patcher : patchers) {
+				if (patcher.matches(name)) {
+					if (visitor == null) {
+						visitor = writer = new ClassWriter(0);
+					}
+					visitor = patcher.patch(name, visitor);
+				}
 			}
+
+			if (visitor != null) {
+				new ClassReader(bytes).accept(visitor, flags);
+				bytes = writer.toByteArray();
+			}
+		} catch (Exception e) {
+			Logger.error("Cannot load " + name, e);
 		}
 
 		return defineClass(name, bytes, 0, bytes.length);

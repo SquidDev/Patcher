@@ -1,8 +1,7 @@
 package org.squiddev.patcher.patch;
 
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.squiddev.patcher.Logger;
+import org.objectweb.asm.ClassVisitor;
 
 /**
  * Replaces parts of the class with
@@ -23,25 +22,15 @@ public class ClassPartialPatcher extends ClassRewriter {
 	 * renames all references
 	 *
 	 * @param className The name of the class
-	 * @param bytes     The original bytes to patch
-	 * @return The patched bytes
+	 * @param delegate  The visitor to delegate to
+	 * @return The patching visitor
+	 * @throws Exception When any error occurs. This will stop the patching process
 	 */
 	@Override
-	public byte[] patch(String className, byte[] bytes) {
-		try {
-			ClassReader original = new ClassReader(bytes);
+	public ClassVisitor patch(String className, ClassVisitor delegate) throws Exception {
+		ClassReader override = getSource(patchType + className.substring(classNameStart));
+		if (override == null) return delegate;
 
-			ClassReader override = getSource(patchType + className.substring(classNameStart));
-			if (override == null) return bytes;
-
-			ClassWriter writer = new ClassWriter(0);
-			original.accept(new MergeVisitor(writer, override, context), ClassReader.EXPAND_FRAMES);
-
-			Logger.debug("Injected custom " + className);
-			return writer.toByteArray();
-		} catch (Exception e) {
-			Logger.error("Cannot replace " + className + ", falling back to default", e);
-			return bytes;
-		}
+		return new MergeVisitor(delegate, override, context);
 	}
 }
