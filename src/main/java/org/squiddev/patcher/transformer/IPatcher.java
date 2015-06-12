@@ -1,4 +1,4 @@
-package org.squiddev.patcher.patch;
+package org.squiddev.patcher.transformer;
 
 import org.objectweb.asm.ClassVisitor;
 

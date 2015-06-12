@@ -1,4 +1,4 @@
-package org.squiddev.patcher.patch;
+package org.squiddev.patcher.transformer;
 
 import org.junit.Test;
 
@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import static org.junit.Assert.*;
 
 /**
- * Tests the {@link ClassPartialPatcher} methods
+ * Tests the {@link org.squiddev.patcher.transformer.ClassPartialPatcher} methods
  */
 public class PartialPatcherTest {
 	public static final String PATCHES = ClassReplacerTest.PATCHES + "patch.";

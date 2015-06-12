@@ -1,9 +1,9 @@
-package org.squiddev.patcher.patch.classes.patch;
+package org.squiddev.patcher.transformer.classes.patch;
 
-import org.squiddev.patcher.patch.MergeVisitor;
+import org.squiddev.patcher.visitors.MergeVisitor;
 
 /**
- * Tests {@link org.squiddev.patcher.patch.MergeVisitor.Stub}
+ * Tests {@link org.squiddev.patcher.visitors.MergeVisitor.Stub}
  */
 public class MethodStub extends Base {
 	@Override

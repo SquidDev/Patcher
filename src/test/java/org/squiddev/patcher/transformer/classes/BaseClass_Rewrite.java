@@ -1,4 +1,4 @@
-package org.squiddev.patcher.patch.classes;
+package org.squiddev.patcher.transformer.classes;
 
 public class BaseClass_Rewrite {
 	public String renamedMessage = "Bar";

@@ -1,4 +1,4 @@
-package org.squiddev.patcher.patch;
+package org.squiddev.patcher.visitors;
 
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;

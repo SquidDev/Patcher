@@ -1,7 +1,8 @@
-package org.squiddev.patcher.patch;
+package org.squiddev.patcher.transformer;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.squiddev.patcher.visitors.MergeVisitor;
 
 /**
  * Replaces parts of the class with

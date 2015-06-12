@@ -1,4 +1,4 @@
-package org.squiddev.patcher.patch.classes.patch;
+package org.squiddev.patcher.transformer.classes.patch;
 
 /**
  * Used to test calling super

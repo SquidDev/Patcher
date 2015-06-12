@@ -1,4 +1,4 @@
-package org.squiddev.patcher.patch;
+package org.squiddev.patcher.visitors;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.RemappingClassAdapter;
@@ -14,7 +14,6 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.squiddev.patcher.patch.AnnotationHelper.*;
 
 /**
  * Merge two classes together
@@ -73,10 +72,10 @@ public class MergeVisitor extends ClassVisitor {
 
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-		if (hasAnnotation(node, STUB)) {
+		if (AnnotationHelper.hasAnnotation(node, AnnotationHelper.STUB)) {
 			// If we are a stub, visit normally
 			super.visit(version, access, name, signature, superName, interfaces);
-		} else if (hasAnnotation(node, REWRITE)) {
+		} else if (AnnotationHelper.hasAnnotation(node, AnnotationHelper.REWRITE)) {
 			// If we are a total rewrite, then visit the overriding class
 			node.accept(cv);
 
@@ -98,8 +97,8 @@ public class MergeVisitor extends ClassVisitor {
 
 			// Visit fields
 			for (FieldNode field : node.fields) {
-				if (!hasAnnotation(field.invisibleAnnotations, STUB) && !field.name.equals(ANNOTATION)) {
-					List<String> renameTo = getAnnotationValue(getAnnotation(field.invisibleAnnotations, RENAME), "to");
+				if (!AnnotationHelper.hasAnnotation(field.invisibleAnnotations, AnnotationHelper.STUB) && !field.name.equals(AnnotationHelper.ANNOTATION)) {
+					List<String> renameTo = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(field.invisibleAnnotations, AnnotationHelper.RENAME), "to");
 					if (renameTo == null) {
 						field.accept(this);
 					} else {
@@ -115,7 +114,7 @@ public class MergeVisitor extends ClassVisitor {
 
 			// Prepare field renames
 			for (FieldNode field : node.fields) {
-				List<String> renameFrom = getAnnotationValue(getAnnotation(field.invisibleAnnotations, RENAME), "from");
+				List<String> renameFrom = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(field.invisibleAnnotations, AnnotationHelper.RENAME), "from");
 				if (renameFrom != null) {
 					for (String from : renameFrom) {
 						memberNames.put(from, field.name);
@@ -126,8 +125,8 @@ public class MergeVisitor extends ClassVisitor {
 			// Visit methods
 			for (MethodNode method : node.methods) {
 				if (!method.name.equals("<init>") && !method.name.equals("<cinit>")) {
-					if (!hasAnnotation(method.invisibleAnnotations, STUB)) {
-						List<String> renameFrom = getAnnotationValue(getAnnotation(method.invisibleAnnotations, RENAME), "to");
+					if (!AnnotationHelper.hasAnnotation(method.invisibleAnnotations, AnnotationHelper.STUB)) {
+						List<String> renameFrom = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.RENAME), "to");
 						if (renameFrom == null) {
 							method.accept(this);
 						} else {
@@ -144,7 +143,7 @@ public class MergeVisitor extends ClassVisitor {
 
 			// Prepare method renames
 			for (MethodNode method : node.methods) {
-				List<String> renameTo = getAnnotationValue(getAnnotation(method.invisibleAnnotations, RENAME), "from");
+				List<String> renameTo = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.RENAME), "from");
 				if (renameTo != null) {
 					for (String from : renameTo) {
 						memberNames.put(from + "(" + context.mapMethodDesc(method.desc) + ")", method.name);
@@ -196,9 +195,9 @@ public class MergeVisitor extends ClassVisitor {
 	 * Adds to the rename context from the {@link MergeVisitor.Rename} annotation
 	 */
 	public void populateRename() {
-		Map<String, Object> annotation = getAnnotation(node, RENAME);
-		List<String> from = getAnnotationValue(annotation, "from");
-		List<String> to = getAnnotationValue(annotation, "to");
+		Map<String, Object> annotation = AnnotationHelper.getAnnotation(node, AnnotationHelper.RENAME);
+		List<String> from = AnnotationHelper.getAnnotationValue(annotation, "from");
+		List<String> to = AnnotationHelper.getAnnotationValue(annotation, "to");
 
 		if (from != null && to != null && from.size() == to.size()) {
 			for (int i = 0; i < from.size(); i++) {

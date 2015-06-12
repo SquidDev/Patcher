@@ -1,9 +1,9 @@
-package org.squiddev.patcher.patch.classes.patch;
+package org.squiddev.patcher.transformer.classes.patch;
 
-import org.squiddev.patcher.patch.MergeVisitor;
+import org.squiddev.patcher.visitors.MergeVisitor;
 
 /**
- * Used to test {@link org.squiddev.patcher.patch.MergeVisitor.Rename} on methods
+ * Used to test {@link org.squiddev.patcher.visitors.MergeVisitor.Rename} on methods
  */
 public class MethodRename extends Base {
 	@MergeVisitor.Rename(to = "getName")
