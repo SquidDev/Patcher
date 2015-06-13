@@ -1,6 +1,5 @@
 package org.squiddev.patcher.visitors;
 
-import javassist.util.proxy.ProxyFactory;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import org.squiddev.patcher.search.Matcher;
@@ -10,12 +9,6 @@ import org.squiddev.patcher.search.Matcher;
  */
 public abstract class FindingVisitor extends ClassVisitor {
 	protected final AbstractInsnNode[] nodes;
-
-	public static ProxyFactory factory = new ProxyFactory();
-
-	static {
-		factory.setSuperclass(MethodVisitor.class);
-	}
 
 	public FindingVisitor(ClassVisitor classVisitor, AbstractInsnNode... nodes) {
 		super(Opcodes.ASM5, classVisitor);

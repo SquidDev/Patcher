@@ -164,7 +164,7 @@ public class Matcher {
 
 	/**
 	 * Compare two {@link AbstractInsnNode}.
-	 * <p/>
+	 *
 	 * This chooses the correct matcher and compares them. Read the type specific
 	 * documentation for custom values that can be passed.
 	 *

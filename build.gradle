@@ -1,9 +1,14 @@
 apply plugin: 'java'
+apply plugin: 'maven'
 
 group 'org.squiddev'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 1.6
+
+configurations {
+	deployerJars
+}
 
 repositories {
 	mavenCentral()
@@ -12,4 +17,65 @@ repositories {
 dependencies {
 	compile group: 'org.ow2.asm', name: 'asm-debug-all', version: '5.+'
 	testCompile group: 'junit', name: 'junit', version: '4.+'
+	deployerJars "org.apache.maven.wagon:wagon-ftp:2.2"
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from javadoc.destinationDir
+}
+
+artifacts {
+	archives jar
+
+	archives sourcesJar
+	archives javadocJar
+}
+
+uploadArchives {
+	repositories {
+		if (!project.hasProperty("ftpHost")) {
+			mavenLocal()
+		} else {
+			mavenDeployer {
+				configuration = configurations.deployerJars
+				repository(url: ftpHost) {
+					authentication(userName: ftpUser, password: ftpPass)
+				}
+
+				pom.project {
+					name 'Patcher'
+					packaging 'jar'
+					description 'Runtime patching with ASM. Because.'
+					url 'https://github.com/SquidDev/Patcher'
+
+					scm {
+						url 'scm:git@github.com:SquidDev/Patcher.git'
+						connection 'scm:git@github.com:SquidDev/Patcher.git'
+						developerConnection 'scm:git@github.com:SquidDev/Patcher.git'
+					}
+
+					licenses {
+						license {
+							name 'MIT License'
+							url 'http://opensource.org/licenses/mit-license.php'
+							distribution 'repo'
+						}
+					}
+
+					developers {
+						developer {
+							id 'SquidDev'
+							name 'SquidDev'
+						}
+					}
+				}
+			}
+		}
+	}
 }
