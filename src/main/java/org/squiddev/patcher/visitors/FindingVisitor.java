@@ -8,7 +8,13 @@ import org.squiddev.patcher.search.Matcher;
  * A basic visitor that visits nodes
  */
 public abstract class FindingVisitor extends ClassVisitor {
-	protected final AbstractInsnNode[] nodes;
+	protected AbstractInsnNode[] nodes;
+	protected String methodName;
+	protected String methodDesc;
+	protected boolean findOnce;
+	protected boolean errorNoMatch;
+
+	protected boolean found = false;
 
 	public FindingVisitor(ClassVisitor classVisitor, AbstractInsnNode... nodes) {
 		super(Opcodes.ASM5, classVisitor);
@@ -16,12 +22,74 @@ public abstract class FindingVisitor extends ClassVisitor {
 		this.nodes = nodes;
 	}
 
+	/**
+	 * Only patch this method
+	 *
+	 * @param name The name of the method
+	 * @return The current object
+	 */
+	public FindingVisitor onMethod(String name) {
+		return onMethod(name, null);
+	}
+
+	/**
+	 * Only patch this method
+	 *
+	 * @param name The name of the method
+	 * @param desc Method signature
+	 * @return The current object
+	 */
+	public FindingVisitor onMethod(String name, String desc) {
+		this.methodName = name;
+		this.methodDesc = desc;
+		return this;
+	}
+
+	/**
+	 * Only search once
+	 *
+	 * @return The current object
+	 */
+	public FindingVisitor once() {
+		findOnce = true;
+		return this;
+	}
+
+	/**
+	 * Error if the match is not found
+	 *
+	 * @return The current object
+	 */
+	public FindingVisitor mustFind() {
+		errorNoMatch = true;
+		return this;
+	}
+
+
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-		return new FindingMethodVisitor(super.visitMethod(access, name, desc, signature, exceptions));
+		MethodVisitor visitor = super.visitMethod(access, name, desc, signature, exceptions);
+		return (methodName == null || methodName.equals(name)) && (methodDesc == null || methodDesc.equals(desc)) && shouldMatch() ?
+			new FindingMethodVisitor(visitor) : visitor;
+	}
+
+	@Override
+	public void visitEnd() {
+		super.visitEnd();
+
+		if (!found && errorNoMatch) {
+			String message = "Cannot find match";
+			if (methodName != null) message += " on method " + methodName;
+
+			throw new RuntimeException(message);
+		}
 	}
 
 	public abstract void handle(InsnList nodes, MethodVisitor visitor);
+
+	protected boolean shouldMatch() {
+		return !findOnce || !found;
+	}
 
 	protected class FindingMethodVisitor extends MethodVisitor {
 		protected InsnList builder = new InsnList();
@@ -43,6 +111,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 
 			if (index == nodes.length) {
 				handle(builder, mv);
+				found = true;
 				builder.clear();
 				index = 0;
 			}
@@ -51,7 +120,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitInsn(int opcode) {
 			AbstractInsnNode node = nodes[index];
-			if (node.getOpcode() != opcode) {
+			if (!shouldMatch() || node.getOpcode() != opcode) {
 				clearCache();
 				super.visitInsn(opcode);
 			} else {
@@ -63,7 +132,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitIntInsn(int opcode, int operand) {
 			AbstractInsnNode node = nodes[index];
-			if (node.getOpcode() != opcode || !Matcher.intInsnEqual(operand, (IntInsnNode) node)) {
+			if (!shouldMatch() || node.getOpcode() != opcode || !Matcher.intInsnEqual(operand, (IntInsnNode) node)) {
 				clearCache();
 				super.visitIntInsn(opcode, operand);
 			} else {
@@ -74,7 +143,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitVarInsn(int opcode, int var) {
 			AbstractInsnNode node = nodes[index];
-			if (node.getOpcode() != opcode || !Matcher.varInsnEqual(var, (VarInsnNode) node)) {
+			if (!shouldMatch() || node.getOpcode() != opcode || !Matcher.varInsnEqual(var, (VarInsnNode) node)) {
 				clearCache();
 				super.visitVarInsn(opcode, var);
 			} else {
@@ -85,7 +154,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitTypeInsn(int opcode, String type) {
 			AbstractInsnNode node = nodes[index];
-			if (node.getOpcode() != opcode || !Matcher.typeInsnEqual(type, (TypeInsnNode) node)) {
+			if (!shouldMatch() || node.getOpcode() != opcode || !Matcher.typeInsnEqual(type, (TypeInsnNode) node)) {
 				clearCache();
 				super.visitTypeInsn(opcode, type);
 			} else {
@@ -96,7 +165,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitFieldInsn(int opcode, String owner, String name, String desc) {
 			AbstractInsnNode node = nodes[index];
-			if (node.getOpcode() != opcode || !Matcher.fieldInsnEqual(owner, name, desc, (FieldInsnNode) node)) {
+			if (!shouldMatch() || node.getOpcode() != opcode || !Matcher.fieldInsnEqual(owner, name, desc, (FieldInsnNode) node)) {
 				clearCache();
 				super.visitFieldInsn(opcode, owner, name, desc);
 			} else {
@@ -107,7 +176,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 			AbstractInsnNode node = nodes[index];
-			if (node.getOpcode() != opcode || !Matcher.methodInsnEqual(owner, name, desc, (MethodInsnNode) node)) {
+			if (!shouldMatch() || node.getOpcode() != opcode || !Matcher.methodInsnEqual(owner, name, desc, (MethodInsnNode) node)) {
 				clearCache();
 				super.visitMethodInsn(opcode, owner, name, desc, itf);
 			} else {
@@ -118,7 +187,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitLdcInsn(Object cst) {
 			AbstractInsnNode node = nodes[index];
-			if (node.getOpcode() != Opcodes.LDC || !Matcher.ldcInsnEqual(cst, (LdcInsnNode) node)) {
+			if (!shouldMatch() || node.getOpcode() != Opcodes.LDC || !Matcher.ldcInsnEqual(cst, (LdcInsnNode) node)) {
 				clearCache();
 				super.visitLdcInsn(cst);
 			} else {
@@ -129,7 +198,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitIincInsn(int var, int increment) {
 			AbstractInsnNode node = nodes[index];
-			if (node.getOpcode() != Opcodes.IINC || !Matcher.iincInsnEqual(var, increment, (IincInsnNode) node)) {
+			if (!shouldMatch() || node.getOpcode() != Opcodes.IINC || !Matcher.iincInsnEqual(var, increment, (IincInsnNode) node)) {
 				clearCache();
 				super.visitIincInsn(var, increment);
 			} else {
