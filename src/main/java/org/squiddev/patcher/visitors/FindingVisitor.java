@@ -238,6 +238,12 @@ public abstract class FindingVisitor extends ClassVisitor {
 		}
 
 		@Override
+		public void visitLabel(Label label) {
+			clearCache();
+			super.visitLabel(label);
+		}
+
+		@Override
 		public void visitEnd() {
 			clearCache();
 			super.visitEnd();
