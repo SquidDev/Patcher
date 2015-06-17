@@ -124,7 +124,7 @@ public class MergeVisitor extends ClassVisitor {
 
 			// Visit methods
 			for (MethodNode method : node.methods) {
-				if (!method.name.equals("<init>") && !method.name.equals("<cinit>")) {
+				if (!method.name.equals("<init>") && !method.name.equals("<clinit>")) {
 					if (!AnnotationHelper.hasAnnotation(method.invisibleAnnotations, AnnotationHelper.STUB)) {
 						List<String> renameFrom = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.RENAME), "to");
 						if (renameFrom == null) {

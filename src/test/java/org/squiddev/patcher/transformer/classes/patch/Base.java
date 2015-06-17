@@ -5,6 +5,8 @@ package org.squiddev.patcher.transformer.classes.patch;
  */
 @SuppressWarnings("unused")
 public class Base extends VeryBase {
+	public static String foo = "foo";
+	
 	private static class Foo {
 		public String getName() {
 			return "Foo";

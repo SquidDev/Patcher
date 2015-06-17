@@ -4,13 +4,15 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 import org.squiddev.patcher.search.Matcher;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * A basic visitor that visits nodes
  */
 public abstract class FindingVisitor extends ClassVisitor {
 	protected AbstractInsnNode[] nodes;
-	protected String methodName;
-	protected String methodDesc;
+	protected Set<Method> methods = new HashSet<Method>();
 	protected boolean findOnce;
 	protected boolean errorNoMatch;
 
@@ -40,8 +42,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 	 * @return The current object
 	 */
 	public FindingVisitor onMethod(String name, String desc) {
-		this.methodName = name;
-		this.methodDesc = desc;
+		this.methods.add(new Method(name, desc));
 		return this;
 	}
 
@@ -69,8 +70,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 		MethodVisitor visitor = super.visitMethod(access, name, desc, signature, exceptions);
-		return (methodName == null || methodName.equals(name)) && (methodDesc == null || methodDesc.equals(desc)) && shouldMatch() ?
-			new FindingMethodVisitor(visitor) : visitor;
+		return (methods.size() == 0 || methods.contains(new Method(name, desc))) && shouldMatch() ? new FindingMethodVisitor(visitor) : visitor;
 	}
 
 	@Override
@@ -79,7 +79,6 @@ public abstract class FindingVisitor extends ClassVisitor {
 
 		if (!found && errorNoMatch) {
 			String message = "Cannot find match";
-			if (methodName != null) message += " on method " + methodName;
 
 			throw new RuntimeException(message);
 		}
@@ -89,6 +88,35 @@ public abstract class FindingVisitor extends ClassVisitor {
 
 	protected boolean shouldMatch() {
 		return !findOnce || !found;
+	}
+
+	protected static final class Method {
+		public final String name;
+		public final String desc;
+
+		public Method(String name, String desc) {
+			this.name = name;
+			this.desc = desc;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || !(o instanceof Method)) return false;
+
+			Method method = (Method) o;
+			return name.equals(method.name) && (desc == null || method.desc == null || desc.equals(method.desc));
+		}
+
+		@Override
+		public int hashCode() {
+			return name.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return "Method{" + name + (desc == null ? "" : desc) + '}';
+		}
 	}
 
 	protected class FindingMethodVisitor extends MethodVisitor {

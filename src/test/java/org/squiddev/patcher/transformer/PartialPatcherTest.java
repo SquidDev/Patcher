@@ -83,6 +83,15 @@ public class PartialPatcherTest {
 	}
 
 	@Test
+	public void staticConstructors() throws Exception {
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "StaticConstructor"));
+
+		Class<?> base = loader.loadClass(CLASS);
+
+		assertEquals("foo", base.getField("foo").get(null));
+	}
+
+	@Test
 	public void rewriteClass() throws Exception {
 		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "ClassRewrite"));
 
