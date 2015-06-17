@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 
 /**
@@ -93,7 +94,7 @@ public class MergeVisitor extends ClassVisitor {
 			writingOverride = true;
 			superClass = superName;
 
-			super.visit(node.version, node.access, name, node.signature, superName, interfaces);
+			super.visit(node.version, checkAbstract(node.access, access), name, node.signature, superName, interfaces);
 
 			// Visit fields
 			for (FieldNode field : node.fields) {
@@ -174,7 +175,7 @@ public class MergeVisitor extends ClassVisitor {
 		String wholeName = name + description;
 
 		// Allows overriding access types
-		access = getMap(this.access, wholeName, access);
+		access = checkAbstract(getMap(this.access, wholeName, access), access);
 		name = getMap(memberNames, wholeName, name);
 
 		if (visited.add(name + description)) {
@@ -209,6 +210,10 @@ public class MergeVisitor extends ClassVisitor {
 	public static <T> T getMap(Map<String, T> map, String key, T def) {
 		T result = map.get(key);
 		return result == null ? def : result;
+	}
+
+	protected static int checkAbstract(int newAccess, int oldAccess) {
+		return (oldAccess & ACC_ABSTRACT) == ACC_ABSTRACT ? newAccess : (newAccess & ~ACC_ABSTRACT);
 	}
 
 	/**
@@ -257,11 +262,15 @@ public class MergeVisitor extends ClassVisitor {
 	public @interface Rename {
 		/**
 		 * List of types to map from from or method to rename from
+		 *
+		 * @return The type names in slash format
 		 */
 		String[] from() default "";
 
 		/**
 		 * List of types to map to from or method this to
+		 *
+		 * @return The type names in slash format
 		 */
 		String[] to() default "";
 	}
