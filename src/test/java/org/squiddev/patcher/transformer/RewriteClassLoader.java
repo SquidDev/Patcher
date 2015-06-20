@@ -1,9 +1,15 @@
 package org.squiddev.patcher.transformer;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.util.CheckClassAdapter;
+import org.objectweb.asm.util.TraceClassVisitor;
 import org.squiddev.patcher.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,6 +20,7 @@ public class RewriteClassLoader extends ClassLoader {
 	public final TransformationChain chain;
 
 	private Set<String> loaded = new HashSet<String>();
+	private Set<String> prefixes = new HashSet<String>();
 
 	public RewriteClassLoader(IPatcher... patchers) {
 		chain = new TransformationChain();
@@ -24,21 +31,40 @@ public class RewriteClassLoader extends ClassLoader {
 			chain.add(patcher);
 		}
 		chain.finalise();
+
+		prefixes.add(ClassReplacerTest.PATCHES);
+	}
+
+	public RewriteClassLoader addPrefixes(String... prefixes) {
+		this.prefixes.addAll(Arrays.asList(prefixes));
+		return this;
 	}
 
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-		if (!name.startsWith(ClassReplacerTest.PATCHES) || !loaded.add(name)) {
+		if (!loaded.add(name)) {
 			return super.loadClass(name, resolve);
 		}
-		return findClass(name);
+
+		for (String prefix : prefixes) {
+			if (name.startsWith(prefix)) {
+				return findClass(name);
+			}
+		}
+
+		return super.loadClass(name, resolve);
 	}
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
-		if (!name.startsWith(ClassReplacerTest.PATCHES)) {
-			return super.findClass(name);
+		boolean success = false;
+		for (String prefix : prefixes) {
+			if (name.startsWith(prefix)) {
+				success = true;
+				break;
+			}
 		}
+		if (!success) return super.findClass(name);
 
 		InputStream is = getClass().getResourceAsStream("/" + name.replace('.', '/') + ".class");
 		if (is == null) {
@@ -87,6 +113,26 @@ public class RewriteClassLoader extends ClassLoader {
 			Logger.error("Cannot load " + name, e);
 		}
 
+		validateClass(new ClassReader(bytes));
+
 		return defineClass(name, bytes, 0, bytes.length);
+	}
+
+	public void validateClass(ClassReader reader) {
+		StringWriter writer = new StringWriter();
+		PrintWriter printWriter = new PrintWriter(writer);
+
+		Exception error = null;
+		try {
+			CheckClassAdapter.verify(reader, this, false, printWriter);
+		} catch (Exception e) {
+			error = e;
+		}
+
+		String contents = writer.toString();
+		if (error != null || contents.length() > 0) {
+			reader.accept(new TraceClassVisitor(printWriter), 0);
+			throw new RuntimeException("Generation error\nDump for " + reader.getClassName() + "\n" + writer.toString(), error);
+		}
 	}
 }

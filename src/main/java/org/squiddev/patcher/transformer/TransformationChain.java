@@ -18,27 +18,28 @@ public class TransformationChain {
 	protected boolean finalised = false;
 
 	public byte[] transform(String className, byte[] bytes) throws Exception {
-		int flags = ClassReader.SKIP_FRAMES;
+		ClassReader reader = null;
 		ClassWriter writer = null;
 		ClassVisitor visitor = null;
 		for (IPatcher patcher : patchers) {
 			if (patcher.matches(className)) {
 				if (visitor == null) {
-					visitor = writer = new ClassWriter(0);
+					for (ISource source : sources) {
+						reader = source.getReader(className);
+						if (reader == null) break;
+					}
+
+					if (reader == null) reader = new ClassReader(bytes);
+
+					visitor = writer = new ClassWriter(reader, 0);
 				}
+
 				visitor = patcher.patch(className, visitor);
 			}
 		}
 
 		if (visitor != null) {
-			ClassReader reader = null;
-			for (ISource source : sources) {
-				reader = source.getReader(className);
-				if (reader == null) break;
-			}
-
-			if (reader == null) reader = new ClassReader(bytes);
-			reader.accept(visitor, flags);
+			reader.accept(visitor, ClassReader.EXPAND_FRAMES);
 			bytes = writer.toByteArray();
 		}
 
