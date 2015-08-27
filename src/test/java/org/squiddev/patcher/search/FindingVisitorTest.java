@@ -50,7 +50,7 @@ public class FindingVisitorTest {
 		try {
 			visitor.visitEnd();
 			Assert.fail("Expected exception");
-		} catch (RuntimeException ignored) {
+		} catch (IllegalStateException ignored) {
 		}
 	}
 

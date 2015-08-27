@@ -2,8 +2,13 @@ package org.squiddev.patcher.visitors;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
+import org.objectweb.asm.util.Printer;
+import org.objectweb.asm.util.Textifier;
+import org.objectweb.asm.util.TraceMethodVisitor;
 import org.squiddev.patcher.search.Matcher;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -78,9 +83,23 @@ public abstract class FindingVisitor extends ClassVisitor {
 		super.visitEnd();
 
 		if (!found && errorNoMatch) {
-			String message = "Cannot find match";
+			StringWriter output = new StringWriter();
+			PrintWriter writer = new PrintWriter(output);
+			writer.append("Cannot find nodes");
+			if (methods.size() > 0) {
+				writer.append(" for methods ").append(methods.toString());
+			}
+			writer.println();
 
-			throw new RuntimeException(message);
+			Printer printer = new Textifier();
+			TraceMethodVisitor visitor = new TraceMethodVisitor(printer);
+			for (AbstractInsnNode node : nodes) {
+				node.accept(visitor);
+			}
+
+			printer.print(writer);
+
+			throw new IllegalStateException(output.toString());
 		}
 	}
 
