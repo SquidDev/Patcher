@@ -4,6 +4,28 @@ import org.objectweb.asm.tree.*;
 
 public class Matcher {
 	/**
+	 * Check two values match
+	 *
+	 * @param val   The value to check
+	 * @param match The value to match against
+	 * @return If the two values match
+	 */
+	private static boolean match(int val, int match) {
+		return match == -1 || val == match;
+	}
+
+	/**
+	 * Check two values match
+	 *
+	 * @param val   The value to check
+	 * @param match The value to match against
+	 * @return If the two values match
+	 */
+	private static <T> boolean match(T val, T match) {
+		return match == null || val.equals(match);
+	}
+
+	/**
 	 * Compare a {@link VarInsnNode} instruction.
 	 *
 	 * @param var   The index of the local variable
@@ -11,7 +33,7 @@ public class Matcher {
 	 * @return If the nodes match
 	 */
 	public static boolean varInsnEqual(int var, VarInsnNode match) {
-		return match.var == -1 || var == match.var;
+		return match(var, match.var);
 	}
 
 	/**
@@ -35,7 +57,7 @@ public class Matcher {
 	 * @return If the nodes match
 	 */
 	public static boolean methodInsnEqual(String owner, String name, String desc, MethodInsnNode match) {
-		return owner.equals(match.owner) && name.equals(match.name) && desc.equals(match.desc);
+		return match(owner, match.owner) && match(name, match.name) && match(desc, match.desc);
 	}
 
 	/**
@@ -59,7 +81,7 @@ public class Matcher {
 	 * @return If the nodes match
 	 */
 	public static boolean fieldInsnEqual(String owner, String name, String desc, FieldInsnNode match) {
-		return owner.equals(match.owner) && name.equals(match.name) && desc.equals(match.desc);
+		return match(owner, match.owner) && match(name, match.name) && match(desc, match.desc);
 	}
 
 	/**
@@ -81,7 +103,7 @@ public class Matcher {
 	 * @return If the nodes match
 	 */
 	public static boolean ldcInsnEqual(Object cst, LdcInsnNode match) {
-		return match.cst == null || cst.equals(match.cst);
+		return match(cst, match.cst);
 	}
 
 	/**
@@ -103,7 +125,7 @@ public class Matcher {
 	 * @return If the nodes match
 	 */
 	public static boolean typeInsnEqual(String desc, TypeInsnNode match) {
-		return match.desc.equals("*") || desc.equals(match.desc);
+		return match(desc, match.desc);
 	}
 
 	/**
@@ -126,7 +148,7 @@ public class Matcher {
 	 * @return If the nodes match
 	 */
 	public static boolean iincInsnEqual(int var, int incr, IincInsnNode match) {
-		return var == match.var && incr == match.incr;
+		return match(var, match.var) && incr == match.incr;
 	}
 
 	/**
@@ -148,7 +170,7 @@ public class Matcher {
 	 * @return If the nodes match
 	 */
 	public static boolean intInsnEqual(int operand, IntInsnNode match) {
-		return match.operand == -1 || operand == match.operand;
+		return operand == match.operand;
 	}
 
 	/**
@@ -164,7 +186,6 @@ public class Matcher {
 
 	/**
 	 * Compare two {@link AbstractInsnNode}.
-	 *
 	 * This chooses the correct matcher and compares them. Read the type specific
 	 * documentation for custom values that can be passed.
 	 *
