@@ -60,6 +60,25 @@ public class FindingVisitorTest {
 		visitor.visitEnd();
 	}
 
+	@Test
+	public void testLabelNoMatch() {
+		ClassVisitor visitor = new FindingVisitor(null,
+			new FieldInsnNode(GETFIELD, "my/class", "foo", "Lbar;")
+		) {
+			@Override
+			public void handle(InsnList nodes, MethodVisitor visitor) {
+				called++;
+			}
+		};
+
+		MethodVisitor mv = visitor.visitMethod(ACC_PUBLIC, "foo", "()V", null, null);
+		mv.visitJumpInsn(GOTO, new Label());
+		mv.visitEnd();
+		visitor.visitEnd();
+
+		Assert.assertEquals(0, called);
+	}
+
 
 	@Test
 	public void testErrors() {

@@ -262,7 +262,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitJumpInsn(int opcode, Label label) {
 			AbstractInsnNode node = nodes[index];
-			if (!shouldMatch() || node.getOpcode() != node.getOpcode() || !Matcher.jumpInsnNodeInsnEqual(label, (JumpInsnNode) node)) {
+			if (!shouldMatch() || node.getOpcode() != opcode || !Matcher.jumpInsnNodeInsnEqual(label, (JumpInsnNode) node)) {
 				clearCache();
 				super.visitJumpInsn(opcode, label);
 			} else {
@@ -285,7 +285,7 @@ public abstract class FindingVisitor extends ClassVisitor {
 		@Override
 		public void visitMultiANewArrayInsn(String desc, int dims) {
 			AbstractInsnNode node = nodes[index];
-			if (!shouldMatch() || node.getOpcode() != node.getOpcode()) {
+			if (!shouldMatch() || node.getOpcode() != Opcodes.MULTIANEWARRAY) {
 				clearCache();
 				super.visitMultiANewArrayInsn(desc, dims);
 			} else {
