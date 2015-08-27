@@ -251,7 +251,6 @@ public abstract class FindingVisitor extends ClassVisitor {
 			} else {
 				add(new IincInsnNode(var, increment));
 			}
-			super.visitIincInsn(var, increment);
 		}
 
 		@Override
@@ -262,8 +261,13 @@ public abstract class FindingVisitor extends ClassVisitor {
 
 		@Override
 		public void visitJumpInsn(int opcode, Label label) {
-			clearCache();
-			super.visitJumpInsn(opcode, label);
+			AbstractInsnNode node = nodes[index];
+			if (!shouldMatch() || node.getOpcode() != node.getOpcode() || !Matcher.jumpInsnNodeInsnEqual(label, (JumpInsnNode) node)) {
+				clearCache();
+				super.visitJumpInsn(opcode, label);
+			} else {
+				add(new JumpInsnNode(opcode, new LabelNode(label)));
+			}
 		}
 
 		@Override
@@ -280,14 +284,24 @@ public abstract class FindingVisitor extends ClassVisitor {
 
 		@Override
 		public void visitMultiANewArrayInsn(String desc, int dims) {
-			clearCache();
-			super.visitMultiANewArrayInsn(desc, dims);
+			AbstractInsnNode node = nodes[index];
+			if (!shouldMatch() || node.getOpcode() != node.getOpcode()) {
+				clearCache();
+				super.visitMultiANewArrayInsn(desc, dims);
+			} else {
+				add(new MultiANewArrayInsnNode(desc, dims));
+			}
 		}
 
 		@Override
 		public void visitLabel(Label label) {
-			clearCache();
-			super.visitLabel(label);
+			AbstractInsnNode node = nodes[index];
+			if (!shouldMatch() || node.getType() != AbstractInsnNode.LABEL) {
+				clearCache();
+				super.visitLabel(label);
+			} else {
+				add(new LabelNode(label));
+			}
 		}
 
 		@Override
