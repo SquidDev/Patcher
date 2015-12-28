@@ -1,8 +1,12 @@
+plugins {
+    id "com.jfrog.bintray" version "1.4"
+}
 apply plugin: 'java'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
 
-group 'org.squiddev'
-version '1.1.1.1'
+group = 'org.squiddev'
+version = '1.1.1.1'
 
 sourceCompatibility = 1.6
 
@@ -30,52 +34,30 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 	from javadoc.destinationDir
 }
 
-artifacts {
-	archives jar
+bintray {
+	user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+	key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+	publications = ['mavenJava']
+	pkg {
+		repo = 'maven'
+		name = 'Patcher'
+		licenses = ['MIT']
+		vcsUrl = 'https://github.com/SquidDev/Patcher'
 
-	archives sourcesJar
-	archives javadocJar
+		version {
+			name = project.version
+			desc = 'Runtime patching with ASM. Because'
+			released = new Date()
+		}
+	}
 }
 
-uploadArchives {
-	repositories {
-		if (!project.hasProperty("ftpHost")) {
-			mavenLocal()
-		} else {
-			mavenDeployer {
-				configuration = configurations.deployerJars
-				repository(url: ftpHost) {
-					authentication(userName: ftpUser, password: ftpPass)
-				}
-
-				pom.project {
-					name 'Patcher'
-					packaging 'jar'
-					description 'Runtime patching with ASM. Because.'
-					url 'https://github.com/SquidDev/Patcher'
-
-					scm {
-						url 'scm:git@github.com:SquidDev/Patcher.git'
-						connection 'scm:git@github.com:SquidDev/Patcher.git'
-						developerConnection 'scm:git@github.com:SquidDev/Patcher.git'
-					}
-
-					licenses {
-						license {
-							name 'MIT License'
-							url 'http://opensource.org/licenses/mit-license.php'
-							distribution 'repo'
-						}
-					}
-
-					developers {
-						developer {
-							id 'SquidDev'
-							name 'SquidDev'
-						}
-					}
-				}
-			}
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			artifact jar
+			artifact sourcesJar { classifier "sources" }
+			artifact javadocJar { classifier "javadoc" }
 		}
 	}
 }
