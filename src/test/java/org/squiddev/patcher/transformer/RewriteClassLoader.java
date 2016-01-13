@@ -135,4 +135,9 @@ public class RewriteClassLoader extends ClassLoader {
 			throw new RuntimeException("Generation error\nDump for " + reader.getClassName() + "\n" + writer.toString(), error);
 		}
 	}
+
+	public void dump(ClassReader reader) {
+		reader.accept(new TraceClassVisitor(new PrintWriter(System.out)), 0);
+		System.out.flush();
+	}
 }

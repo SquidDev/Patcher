@@ -16,6 +16,7 @@ public class AnnotationHelper {
 	public final static String STUB = Type.getDescriptor(MergeVisitor.Stub.class);
 	public final static String REWRITE = Type.getDescriptor(MergeVisitor.Rewrite.class);
 	public final static String RENAME = Type.getDescriptor(MergeVisitor.Rename.class);
+	public final static String BLOCKS = Type.getDescriptor(MergeVisitor.Blocks.class);
 
 	/**
 	 * We use a field called {@code ANNOTATION} to store data about the class itself

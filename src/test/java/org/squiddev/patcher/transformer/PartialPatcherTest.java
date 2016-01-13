@@ -36,6 +36,47 @@ public class PartialPatcherTest {
 	}
 
 	@Test
+	public void methodArgRename() throws Exception {
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "MethodRename"));
+
+		Class<?> base = loader.loadClass(CLASS);
+		Object instance = base.newInstance();
+
+		Method method = base.getMethod("getName", Number.class);
+		assertEquals("Foo2", method.invoke(instance, 2));
+	}
+
+	@Test
+	public void methodBlocks() throws Exception {
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "Blocks"));
+
+		Class<?> base = loader.loadClass(CLASS);
+
+		assertNotNull(base.getMethod("testing"));
+		try {
+			base.getMethod("getPrivateName");
+			fail("getName should not exist");
+		} catch (NoSuchMethodException ignored) {
+		}
+
+		assertNotNull(base.getDeclaredMethod("onlyExistsToMakeSureBarHasSameConstructorAsFoo"));
+	}
+
+	@Test
+	public void fieldBlocks() throws Exception {
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "Blocks"));
+
+		Class<?> base = loader.loadClass(CLASS);
+
+		assertNotNull(base.getField("testingF"));
+		try {
+			base.getField("anotherF");
+			fail("anotherF should not exist");
+		} catch (NoSuchFieldException ignored) {
+		}
+	}
+
+	@Test
 	public void callSuper() throws Exception {
 		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "Super"));
 

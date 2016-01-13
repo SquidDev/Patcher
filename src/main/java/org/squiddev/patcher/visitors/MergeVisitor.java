@@ -15,6 +15,8 @@ import java.util.*;
 
 import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.squiddev.patcher.visitors.AnnotationHelper.getAnnotation;
+import static org.squiddev.patcher.visitors.AnnotationHelper.getAnnotationValue;
 
 /**
  * Merge two classes together
@@ -27,6 +29,7 @@ public class MergeVisitor extends ClassVisitor {
 	private final Map<String, Integer> access = new HashMap<String, Integer>();
 
 	private final Map<String, String> memberNames = new HashMap<String, String>();
+	private final Map<String, String> blocks = new HashMap<String, String>();
 
 	private RenameContext context;
 
@@ -111,20 +114,29 @@ public class MergeVisitor extends ClassVisitor {
 				} else {
 					this.access.put(field.name, field.access);
 				}
-			}
 
-			// Prepare field renames
-			for (FieldNode field : node.fields) {
+				// Prepare field renames
 				List<String> renameFrom = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(field.invisibleAnnotations, AnnotationHelper.RENAME), "from");
 				if (renameFrom != null) {
 					for (String from : renameFrom) {
 						memberNames.put(from, field.name);
 					}
 				}
+
+				// Prepare method blocking
+				List<String> blocks = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(field.invisibleAnnotations, AnnotationHelper.BLOCKS), "value");
+				if (blocks != null) {
+					for (String block : blocks) {
+						this.blocks.put(block, field.name);
+					}
+				}
 			}
 
 			// Visit methods
 			for (MethodNode method : node.methods) {
+				String desc = "(" + context.mapMethodDesc(method.desc) + ")";
+				String whole = method.name + desc;
+
 				if (!method.name.equals("<init>") && !method.name.equals("<clinit>")) {
 					if (!AnnotationHelper.hasAnnotation(method.invisibleAnnotations, AnnotationHelper.STUB)) {
 						List<String> renameFrom = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.RENAME), "to");
@@ -137,17 +149,23 @@ public class MergeVisitor extends ClassVisitor {
 							}
 						}
 					} else {
-						this.access.put(method.name + "(" + context.mapMethodDesc(method.desc) + ")", method.access);
+						this.access.put(whole, method.access);
 					}
 				}
-			}
 
-			// Prepare method renames
-			for (MethodNode method : node.methods) {
+				// Prepare method renames
 				List<String> renameTo = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.RENAME), "from");
 				if (renameTo != null) {
 					for (String from : renameTo) {
-						memberNames.put(from + "(" + context.mapMethodDesc(method.desc) + ")", method.name);
+						memberNames.put(from + desc, method.name);
+					}
+				}
+
+				// Prepare method blocking
+				List<String> blocks = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.BLOCKS), "value");
+				if (blocks != null) {
+					for (String block : blocks) {
+						this.blocks.put(block, whole);
 					}
 				}
 			}
@@ -162,7 +180,8 @@ public class MergeVisitor extends ClassVisitor {
 		access = getMap(this.access, name, access);
 		name = getMap(this.memberNames, name, name);
 
-		if (visited.add(name)) {
+		String block = this.blocks.get(name);
+		if ((block == null || block.equals(name)) && visited.add(name)) {
 			return super.visitField(access, name, desc, signature, value);
 		}
 
@@ -178,7 +197,8 @@ public class MergeVisitor extends ClassVisitor {
 		access = checkAbstract(getMap(this.access, wholeName, access), access);
 		name = getMap(memberNames, wholeName, name);
 
-		if (visited.add(name + description)) {
+		String block = this.blocks.get(name);
+		if ((block == null || block.equals(wholeName)) && visited.add(name + description)) {
 			MethodVisitor visitor = super.visitMethod(access, name, desc, signature, exceptions);
 
 			// We remap super methods if the method is not static and we are writing the override methods
@@ -196,9 +216,9 @@ public class MergeVisitor extends ClassVisitor {
 	 * Adds to the rename context from the {@link MergeVisitor.Rename} annotation
 	 */
 	public void populateRename() {
-		Map<String, Object> annotation = AnnotationHelper.getAnnotation(node, AnnotationHelper.RENAME);
-		List<String> from = AnnotationHelper.getAnnotationValue(annotation, "from");
-		List<String> to = AnnotationHelper.getAnnotationValue(annotation, "to");
+		Map<String, Object> annotation = getAnnotation(node, AnnotationHelper.RENAME);
+		List<String> from = getAnnotationValue(annotation, "from");
+		List<String> to = getAnnotationValue(annotation, "to");
 
 		if (from != null && to != null && from.size() == to.size()) {
 			for (int i = 0; i < from.size(); i++) {
@@ -273,5 +293,19 @@ public class MergeVisitor extends ClassVisitor {
 		 * @return The type names in slash format
 		 */
 		String[] to() default "";
+	}
+
+	/**
+	 * Blocks other members of the type from being written
+	 */
+	@Target({ElementType.METHOD, ElementType.FIELD})
+	@Retention(RetentionPolicy.CLASS)
+	public @interface Blocks {
+		/**
+		 * List of methods to block
+		 *
+		 * @return The methods to block
+		 */
+		String[] value() default "";
 	}
 }
