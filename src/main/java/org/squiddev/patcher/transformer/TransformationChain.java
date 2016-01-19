@@ -26,7 +26,7 @@ public class TransformationChain {
 				if (visitor == null) {
 					for (ISource source : sources) {
 						reader = source.getReader(className);
-						if (reader == null) break;
+						if (reader != null) break;
 					}
 
 					if (reader == null) reader = new ClassReader(bytes);

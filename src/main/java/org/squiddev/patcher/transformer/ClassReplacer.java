@@ -2,7 +2,7 @@ package org.squiddev.patcher.transformer;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.commons.RemappingClassAdapter;
+import org.squiddev.patcher.visitors.ImprovedRemappingClassAdapter;
 
 import java.io.IOException;
 
@@ -30,7 +30,7 @@ public class ClassReplacer extends AbstractRewriter implements ISource {
 	 */
 	@Override
 	public ClassVisitor patch(String className, final ClassVisitor delegate) throws Exception {
-		return new RemappingClassAdapter(delegate, context);
+		return new ImprovedRemappingClassAdapter(delegate, context);
 	}
 
 	/**
