@@ -39,7 +39,7 @@ public class TransformationChain {
 		}
 
 		if (visitor != null) {
-			reader.accept(visitor, ClassReader.EXPAND_FRAMES);
+			reader.accept(visitor, 0);
 			bytes = writer.toByteArray();
 		}
 
