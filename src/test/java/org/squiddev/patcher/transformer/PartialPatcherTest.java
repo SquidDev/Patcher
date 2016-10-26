@@ -77,6 +77,24 @@ public class PartialPatcherTest {
 	}
 
 	@Test
+	public void methodRenameII() throws Exception {
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "MethodRename2"));
+
+		Class<?> base = loader.loadClass(CLASS);
+		Object instance = base.newInstance();
+
+		{
+			Method method = base.getMethod("getName");
+			assertEquals("Something", method.invoke(instance));
+		}
+
+		{
+			Method method = base.getMethod("parentGetName");
+			assertEquals("Foo", method.invoke(instance));
+		}
+	}
+
+	@Test
 	public void callSuper() throws Exception {
 		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "Super"));
 

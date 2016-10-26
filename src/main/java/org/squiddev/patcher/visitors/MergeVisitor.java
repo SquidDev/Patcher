@@ -99,6 +99,15 @@ public class MergeVisitor extends ClassVisitor {
 
 			super.visit(node.version, checkAbstract(node.access, access), name, node.signature, superName, interfaces);
 
+			// Prepare field blocking. This applies to all fields so needs to happen first
+			for (FieldNode field : node.fields) {
+				List<String> blocks = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(field.invisibleAnnotations, AnnotationHelper.BLOCKS), "value");
+				if (blocks != null) {
+					for (String block : blocks) {
+						this.blocks.put(block, field.name);
+					}
+				}
+			}
 			// Visit fields
 			for (FieldNode field : node.fields) {
 				if (!AnnotationHelper.hasAnnotation(field.invisibleAnnotations, AnnotationHelper.STUB) && !field.name.equals(AnnotationHelper.ANNOTATION)) {
@@ -114,20 +123,25 @@ public class MergeVisitor extends ClassVisitor {
 				} else {
 					this.access.put(field.name, field.access);
 				}
+			}
 
-				// Prepare field renames
+			// Prepare field renames. This only applies to the base class fields so happens afterwards.
+			for (FieldNode field : node.fields) {
 				List<String> renameFrom = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(field.invisibleAnnotations, AnnotationHelper.RENAME), "from");
 				if (renameFrom != null) {
 					for (String from : renameFrom) {
 						memberNames.put(from, field.name);
 					}
 				}
+			}
 
-				// Prepare method blocking
-				List<String> blocks = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(field.invisibleAnnotations, AnnotationHelper.BLOCKS), "value");
+			// Prepare method blocking
+			for (MethodNode method : node.methods) {
+				List<String> blocks = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.BLOCKS), "value");
 				if (blocks != null) {
+					String desc = "(" + context.mapMethodDesc(method.desc) + ")";
 					for (String block : blocks) {
-						this.blocks.put(block, field.name);
+						this.blocks.put(block, method.name + desc);
 					}
 				}
 			}
@@ -152,20 +166,15 @@ public class MergeVisitor extends ClassVisitor {
 						this.access.put(whole, method.access);
 					}
 				}
+			}
 
-				// Prepare method renames
-				List<String> renameTo = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.RENAME), "from");
-				if (renameTo != null) {
-					for (String from : renameTo) {
+			// Prepare method renames
+			for (MethodNode method : node.methods) {
+				List<String> renameFrom = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.RENAME), "from");
+				if (renameFrom != null) {
+					String desc = "(" + context.mapMethodDesc(method.desc) + ")";
+					for (String from : renameFrom) {
 						memberNames.put(from + desc, method.name);
-					}
-				}
-
-				// Prepare method blocking
-				List<String> blocks = AnnotationHelper.getAnnotationValue(AnnotationHelper.getAnnotation(method.invisibleAnnotations, AnnotationHelper.BLOCKS), "value");
-				if (blocks != null) {
-					for (String block : blocks) {
-						this.blocks.put(block, whole);
 					}
 				}
 			}
