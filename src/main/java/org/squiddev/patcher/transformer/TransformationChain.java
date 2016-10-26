@@ -46,6 +46,12 @@ public class TransformationChain {
 		return bytes;
 	}
 
+	public <T extends IPatcher & ISource> void addBoth(T patcher) {
+		if (finalised) throw new IllegalStateException("Cannot add new patchers once finalised");
+		patchers.add(patcher);
+		sources.add(patcher);
+	}
+
 	public void add(IPatcher patcher) {
 		if (finalised) throw new IllegalStateException("Cannot add new patchers once finalised");
 		patchers.add(patcher);
