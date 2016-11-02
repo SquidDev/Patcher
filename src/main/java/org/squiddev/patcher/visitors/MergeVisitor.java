@@ -1,7 +1,7 @@
 package org.squiddev.patcher.visitors;
 
 import org.objectweb.asm.*;
-import org.objectweb.asm.commons.ClassRemapper;
+import org.objectweb.asm.commons.RemappingClassAdapter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -45,7 +45,7 @@ public class MergeVisitor extends ClassVisitor {
 	 */
 	public MergeVisitor(ClassVisitor cv, ClassNode node, RenameContext context) {
 		super(Opcodes.ASM5);
-		this.cv = new ClassRemapper(cv, context);
+		this.cv = new RemappingClassAdapter(cv, context);
 		this.node = node;
 		this.context = context;
 		populateRename();
