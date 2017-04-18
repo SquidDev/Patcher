@@ -6,7 +6,7 @@ package org.squiddev.patcher.transformer.classes.patch;
 @SuppressWarnings("unused")
 public class Base extends VeryBase {
 	public static String foo = "foo";
-	
+
 	private static class Foo {
 		public String getName() {
 			return "Foo";
@@ -19,9 +19,19 @@ public class Base extends VeryBase {
 		}
 	}
 
+	public static class Baz {
+		public String getName() {
+			return "Baz";
+		}
+	}
+
 	@Override
 	public String getName() {
 		return new Foo().getName();
+	}
+
+	private Foo getFoo() {
+		return new Foo();
 	}
 
 	private void onlyExistsToMakeSureBarHasSameConstructorAsFoo() {

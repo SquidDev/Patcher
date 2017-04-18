@@ -25,6 +25,18 @@ public class PartialPatcherTest {
 	}
 
 	@Test
+	public void classRename2() throws Exception {
+		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "ClassRename2"));
+
+		Class<?> base = loader.loadClass(CLASS);
+		Object instance = base.newInstance();
+
+		Method method = base.getDeclaredMethod("getFoo");
+		method.setAccessible(true);
+		assertEquals("org.squiddev.patcher.transformer.classes.patch.Base$Foo", method.invoke(instance).getClass().getName());
+	}
+
+	@Test
 	public void methodRename() throws Exception {
 		RewriteClassLoader loader = new RewriteClassLoader(new ClassMerger(CLASS, PATCHES + "MethodRename"));
 

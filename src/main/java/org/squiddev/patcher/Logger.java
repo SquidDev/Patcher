@@ -25,6 +25,6 @@ public class Logger {
 
 	public void doError(String message, Throwable e) {
 		System.out.println("[ERROR] " + message);
-		e.printStackTrace(System.out);
+		if (e != null) e.printStackTrace(System.out);
 	}
 }

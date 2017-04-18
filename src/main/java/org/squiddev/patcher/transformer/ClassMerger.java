@@ -2,6 +2,7 @@ package org.squiddev.patcher.transformer;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.squiddev.patcher.Logger;
 import org.squiddev.patcher.visitors.MergeVisitor;
 
 /**
@@ -10,8 +11,16 @@ import org.squiddev.patcher.visitors.MergeVisitor;
 public class ClassMerger extends AbstractRewriter {
 	public final static String NAME_SUFFIX = "_Patch";
 
+	public ClassMerger(Logger logger, String className, String patchName) {
+		super(logger, className, patchName);
+	}
+
 	public ClassMerger(String className, String patchName) {
 		super(className, patchName);
+	}
+
+	public ClassMerger(Logger logger, String className) {
+		this(logger, className, className + NAME_SUFFIX);
 	}
 
 	public ClassMerger(String className) {

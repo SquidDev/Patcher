@@ -1,14 +1,17 @@
 package org.squiddev.patcher.transformer;
 
 import org.objectweb.asm.ClassReader;
+import org.squiddev.patcher.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Finds classes in the /patch/ directory and uses
  * them instead
  */
 public class ClassReplaceSource implements ISource {
+	private final Logger logger;
 	/**
 	 * The root directory we are finding patches at
 	 */
@@ -20,14 +23,23 @@ public class ClassReplaceSource implements ISource {
 	public final String targetName;
 
 	public ClassReplaceSource(String targetName, String patchPath) {
+		this(Logger.instance, targetName, patchPath);
+	}
+
+	public ClassReplaceSource(Logger logger, String targetName, String patchPath) {
+		this.logger = logger;
 		if (!patchPath.endsWith("/")) patchPath += "/";
 
 		this.patchPath = patchPath;
 		this.targetName = targetName;
 	}
 
+	public ClassReplaceSource(Logger logger, String targetName) {
+		this(logger, targetName, "/patch/");
+	}
+
 	public ClassReplaceSource(String targetName) {
-		this(targetName, "/patch/");
+		this(Logger.instance, targetName, "/patch/");
 	}
 
 	/**
@@ -39,9 +51,16 @@ public class ClassReplaceSource implements ISource {
 	 */
 	@Override
 	public ClassReader getReader(String className) throws IOException {
-		if (className.startsWith(this.targetName)) {
+		if (className.equals(this.targetName) || className.startsWith(this.targetName + "$")) {
 			String source = patchPath + className.replace('.', '/') + ".class";
-			return new ClassReader(ClassReplaceSource.class.getResourceAsStream(source));
+
+			InputStream stream = ClassReplaceSource.class.getResourceAsStream(source);
+			if (stream == null) {
+				logger.doWarn("Cannot find custom replacement " + className);
+				return null;
+			}
+
+			return new ClassReader(stream);
 		}
 
 		return null;

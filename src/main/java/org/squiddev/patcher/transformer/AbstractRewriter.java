@@ -10,6 +10,11 @@ import java.io.InputStream;
  * Abstract class for using custom sources
  */
 public abstract class AbstractRewriter implements IPatcher {
+	/**
+	 * The logger to send output to.
+	 */
+	protected final Logger logger;
+
 	protected final int classNameStart;
 
 	/**
@@ -38,6 +43,11 @@ public abstract class AbstractRewriter implements IPatcher {
 	protected final RenameContext context;
 
 	public AbstractRewriter(String className, String patchName) {
+		this(Logger.instance, className, patchName);
+	}
+
+	public AbstractRewriter(Logger logger, String className, String patchName) {
+		this.logger = logger;
 		this.className = className;
 		classNameStart = className.length();
 		classType = className.replace('.', '/');
@@ -54,13 +64,13 @@ public abstract class AbstractRewriter implements IPatcher {
 		InputStream stream = AbstractRewriter.class.getResourceAsStream(source);
 
 		if (stream == null) {
-			Logger.warn("Cannot find custom rewrite " + source);
+			logger.doWarn("Cannot find custom rewrite " + source);
 			return null;
 		}
 		try {
 			return new ClassReader(stream);
 		} catch (Exception e) {
-			Logger.error("Cannot load " + source + ", falling back to default", e);
+			logger.doError("Cannot load " + source + ", falling back to default", e);
 		}
 
 		return null;
@@ -74,6 +84,6 @@ public abstract class AbstractRewriter implements IPatcher {
 	 */
 	@Override
 	public boolean matches(String className) {
-		return className.startsWith(this.className);
+		return className.equals(this.className) || className.startsWith(this.className + "$");
 	}
 }

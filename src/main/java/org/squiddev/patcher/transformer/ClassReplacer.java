@@ -2,6 +2,7 @@ package org.squiddev.patcher.transformer;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.squiddev.patcher.Logger;
 import org.squiddev.patcher.visitors.ImprovedRemappingClassAdapter;
 
 import java.io.IOException;
@@ -12,8 +13,16 @@ import java.io.IOException;
 public class ClassReplacer extends AbstractRewriter implements ISource {
 	public final static String NAME_SUFFIX = "_Rewrite";
 
-	public ClassReplacer(String className, String actualName) {
-		super(className, actualName);
+	public ClassReplacer(Logger logger, String className, String patchName) {
+		super(logger, className, patchName);
+	}
+
+	public ClassReplacer(String className, String patchName) {
+		super(className, patchName);
+	}
+
+	public ClassReplacer(Logger logger, String className) {
+		this(logger, className, className + NAME_SUFFIX);
 	}
 
 	public ClassReplacer(String className) {

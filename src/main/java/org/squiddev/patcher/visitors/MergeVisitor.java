@@ -32,8 +32,8 @@ public class MergeVisitor extends ClassVisitor {
 
 	private RenameContext context;
 
-	protected boolean writingOverride = false;
-	protected String superClass = null;
+	private boolean writingOverride = false;
+	private String superClass = null;
 
 	/**
 	 * Merge two classes together.
