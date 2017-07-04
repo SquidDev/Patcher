@@ -31,7 +31,7 @@ public class TransformationChain {
 
 					if (reader == null) reader = new ClassReader(bytes);
 
-					visitor = writer = new ClassWriter(reader, 0);
+					visitor = writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);
 				}
 
 				visitor = patcher.patch(className, visitor);
